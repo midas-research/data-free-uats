@@ -2,4 +2,6 @@
 
 ## Files and Usage
 This folder contains the following files: 
-+ `sst.py` walks through training a simple GloVe-based LSTM sentiment analysis model in AllenNLP on the Stanford Sentiment Treebank. It then creates universal adversarial triggers for the sentiment model (Section 3 of the paper).
++ `sst_main.py` - to run UAT generation
++ `sst_ci.py` - to run Class Impression Generation
++ `sst-transfer` - to transfer UATS to different models
