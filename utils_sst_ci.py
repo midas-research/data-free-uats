@@ -24,42 +24,42 @@ def get_embedding_weight(model):
     Extracts and returns the token embedding weight matrix from the model.
     """
     for module in model.modules():
-#         if isinstance(module, TextFieldEmbedder):
-#             for embed in module._token_embedders.keys():
-#                 print(module._token_embedders[embed])
-#                 embedding_weight = module._token_embedders[embed].weight.cpu().detach()
+        if isinstance(module, TextFieldEmbedder):
+            for embed in module._token_embedders.keys():
+                print(module._token_embedders[embed])
+                embedding_weight = module._token_embedders[embed].weight.cpu().detach()
                 
                 
-        if isinstance(module, TextFieldEmbedder): 
-            if isinstance(module, BasicTextFieldEmbedder): 
-                if len(module._token_embedders) == 1: 
-                    for module_elmo in module._token_embedders['tokens'].modules():
-                        if isinstance(module_elmo, _ElmoCharacterEncoder):
-                            return module_elmo
-#             return embedding_weight
+#         if isinstance(module, TextFieldEmbedder): 
+#             if isinstance(module, BasicTextFieldEmbedder): 
+#                 if len(module._token_embedders) == 1: 
+#                     for module_elmo in module._token_embedders['tokens'].modules():
+#                         if isinstance(module_elmo, _ElmoCharacterEncoder):
+#                             return module_elmo
+            return embedding_weight
 
 # hook used in add_hooks()
 extracted_grads = []
 def extract_grad_hook(module, grad_in, grad_out):
     extracted_grads.append(grad_out[0])
 
-def make_embedder_input(all_tokens: List[str], vocab, reader) -> Dict[str, torch.Tensor]:
-    inputs = {}
-    indexers = reader._token_indexers  # type: ignore
-    for indexer_name, token_indexer in indexers.items():
-        print(token_indexer)
-        if isinstance(token_indexer, ELMoTokenCharactersIndexer):
-            elmo_tokens = []
-            for token in all_tokens:
-                elmo_indexed_token = token_indexer.tokens_to_indices(
-                    [Token(text=token)], vocab
-                )["elmo_tokens"]
-                elmo_tokens.append(elmo_indexed_token[0])
-            inputs[indexer_name] = {"elmo_tokens": torch.LongTensor(elmo_tokens).unsqueeze(0)}
-        else:
-            raise RuntimeError("Unsupported token indexer:", token_indexer)
+# def make_embedder_input(all_tokens: List[str], vocab, reader) -> Dict[str, torch.Tensor]:
+#     inputs = {}
+#     indexers = reader._token_indexers  # type: ignore
+#     for indexer_name, token_indexer in indexers.items():
+#         print(token_indexer)
+#         if isinstance(token_indexer, ELMoTokenCharactersIndexer):
+#             elmo_tokens = []
+#             for token in all_tokens:
+#                 elmo_indexed_token = token_indexer.tokens_to_indices(
+#                     [Token(text=token)], vocab
+#                 )["elmo_tokens"]
+#                 elmo_tokens.append(elmo_indexed_token[0])
+#             inputs[indexer_name] = {"elmo_tokens": torch.LongTensor(elmo_tokens).unsqueeze(0)}
+#         else:
+#             raise RuntimeError("Unsupported token indexer:", token_indexer)
 
-    return move_to_device(inputs, 0)
+#     return move_to_device(inputs, 0)
 
 
 def add_hooks(model):
