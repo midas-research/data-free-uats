@@ -130,17 +130,17 @@ def main():
         with open(model_path, 'wb') as f:
             torch.save(model.state_dict(), f)
         vocab.save_to_files(vocab_path)
-    model.eval().cuda() # rnn cannot do backwards in train mode
+    model.train().cuda() # rnn cannot do backwards in train mode
     print('Starting trigger generation')
     # Register a gradient hook on the embeddings. This saves the gradient w.r.t. the word embeddings.
     # We use the gradient later in the attack.
-#     utils.add_hooks(model)
-#     embedding_weight = utils.get_embedding_weight(model) # also save the word embedding matrix
+    utils.add_hooks(model)
+    embedding_weight = utils.get_embedding_weight(model) # also save the word embedding matrix
 
-    # Use batches of size universal_perturb_batch_size for the attacks.
-#     universal_perturb_batch_size = 32
-#     iterator = BasicIterator(batch_size=universal_perturb_batch_size)
-#     iterator.index_with(vocab)
+    Use batches of size universal_perturb_batch_size for the attacks.
+    universal_perturb_batch_size = 32
+    iterator = BasicIterator(batch_size=universal_perturb_batch_size)
+    iterator.index_with(vocab)
     
     dataset_label_filter = (args.Type)
 
@@ -160,62 +160,48 @@ def main():
         impressions_list.append(imp_instance)
     
     # get accuracy before adding triggers
-    utils.add_forward_hooks(model)
+#     utils.add_forward_hooks(model)
     
-    outputs = utils.get_forwards(model, impressions_list, vocab)
-    import pickle
-    with open('sst_'+dataset_label_filter+'.pkl', 'wb') as f:
-        pickle.dump(outputs,f)
+#     outputs = utils.get_forwards(model, impressions_list, vocab)
+#     import pickle
+#     with open('sst_'+dataset_label_filter+'.pkl', 'wb') as f:
+#         pickle.dump(outputs,f)
 #     model.train() # rnn cannot do backwards in train mode
     
-#     # initialize triggers which are concatenated to the input
-#     num_trigger_tokens = 3
-#     trigger_token_ids = [vocab.get_token_index("the")] * num_trigger_tokens
-#     is_datafree = False
-#     print(is_datafree, dataset_label_filter)
-#     trig_store=[]
-#     # sample batches, update the triggers, and repeat
-#     for batch in lazy_groups_of(iterator(impressions_list, num_epochs=10, shuffle=True), group_size=1):
-# #     for batch in lazy_groups_of(iterator(targeted_dev_data, num_epochs=5, shuffle=True), group_size=1):
-#         # get accuracy with current triggers
-#         model.train() # rnn cannot do backwards in train mode
+    # initialize triggers which are concatenated to the input
+    num_trigger_tokens = 3
+    trigger_token_ids = [vocab.get_token_index("the")] * num_trigger_tokens
+    is_datafree = False
+    print(is_datafree, dataset_label_filter)
+    trig_store=[]
+    # sample batches, update the triggers, and repeat
+    for batch in lazy_groups_of(iterator(impressions_list, num_epochs=10, shuffle=True), group_size=1):
+#     for batch in lazy_groups_of(iterator(targeted_dev_data, num_epochs=5, shuffle=True), group_size=1):
+        # get accuracy with current triggers
+        model.train() # rnn cannot do backwards in train mode
 
-#         # get gradient w.r.t. trigger embeddings for current batch
-#         averaged_grad = utils.get_average_grad(model, batch, trigger_token_ids, is_df=is_datafree)
-#         model.eval()
-#         # pass the gradients to a particular attack to generate token candidates for each token.
-#         cand_trigger_token_ids = attacks.hotflip_attack(averaged_grad,
-#                                                         embedding_weight,
-#                                                         num_candidates=40,
-#                                                         increase_loss=True)
-#         # cand_trigger_token_ids = attacks.random_attack(embedding_weight,
-#         #                                                trigger_token_ids,
-#         #                                                num_candidates=40)
-#         # cand_trigger_token_ids = attacks.nearest_neighbor_grad(averaged_grad,
-#         #                                                        embedding_weight,
-#         #                                                        trigger_token_ids,
-#         #                                                        tree,
-#         #                                                        100,
-#         #                                                        num_candidates=40,
-#         #                                                        increase_loss=True)
-
-#         # Tries all of the candidates and returns the trigger sequence with highest loss.
-#         trigger_token_ids = utils.get_best_candidates(model,
-#                                                       batch,
-#                                                       trigger_token_ids,
-#                                                       cand_trigger_token_ids,beam_size = 1,
-#                                                      increase_loss = True, is_df=is_datafree)
+        # get gradient w.r.t. trigger embeddings for current batch
+        averaged_grad = utils.get_average_grad(model, batch, trigger_token_ids, is_df=is_datafree)
+        model.eval()
+        # pass the gradients to a particular attack to generate token candidates for each token.
+        cand_trigger_token_ids = attacks.hotflip_attack(averaged_grad,
+                                                        embedding_weight,
+                                                        num_candidates=40,
+                                                        increase_loss=True)
+        # Tries all of the candidates and returns the trigger sequence with highest loss.
+        trigger_token_ids = utils.get_best_candidates(model,
+                                                      batch,
+                                                      trigger_token_ids,
+                                                      cand_trigger_token_ids,beam_size = 1,
+                                                     increase_loss = True, is_df=is_datafree)
         
-#         print_string = ' '.join([vocab.get_token_from_index(x) for x in trigger_token_ids])
-#         acc_val = utils.get_accuracy(model, targeted_dev_data, vocab, trigger_token_ids)
-#         acc_ci = utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids)
-#         trig_store.append({'trig':print_string, 'loss_val':acc_val, 'loss_ci':acc_ci})
+        print_string = ' '.join([vocab.get_token_from_index(x) for x in trigger_token_ids])
+        acc_val = utils.get_accuracy(model, targeted_dev_data, vocab, trigger_token_ids)
+        acc_ci = utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids)
+        trig_store.append({'trig':print_string, 'loss_val':acc_val, 'loss_ci':acc_ci})
     
-#     results = pd.DataFrame(trig_store)
-#     results.to_csv('triggers_'+dataset_label_filter+'.csv', index = False)
-
-
-# -
+    results = pd.DataFrame(trig_store)
+    results.to_csv('triggers_'+dataset_label_filter+'.csv', index = False)
 
 if __name__ == '__main__':
     main()
