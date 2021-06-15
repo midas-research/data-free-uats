@@ -7,8 +7,13 @@ The repository is broken down by task:
 + `snli` attacks natural language inference models on the SNLI dataset (AllenNLP-based).
 + `albert` attacks ALBERT and MRPC dataset
 
-To get the data and model:
-create a data folder in the main repo and inside it, run
+## Get the data and models:
+
+! cd data-free-uats
+
+! mkdir data
+
+! cd data
 
 ! wget https://s3-us-west-2.amazonaws.com/allennlp/datasets/sst/train.txt
 
