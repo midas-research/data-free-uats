@@ -152,82 +152,82 @@ def get_accuracy(model, dev_dataset, vocab, trigger_token_ids=None, snli=False):
     return model.get_metrics()['accuracy']
 
 
-def get_forwards_sst(model, dataset, vocab):
-    global extracted_forward_embs
-    extracted_forward_embs = [] # clear existing stored grads
-    outs = []
-    iterator = BucketIterator(batch_size=1, sorting_keys=[("tokens", "num_tokens")])
-    iterator.index_with(vocab)
-    for batch in lazy_groups_of(iterator(dataset, num_epochs=1, shuffle=False), group_size=1):
-        batch = move_to_device(batch[0], cuda_device=0)
-        output_label =  model(batch['tokens'], None)
-        output_dict = {}
-        print_string = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['tokens']['tokens'][0].detach().cpu().numpy())])
-        output_dict['text'] = print_string
-        output_dict['embedding'] = extracted_forward_embs[-1]
-        output_dict['label'] = batch['label'].detach().cpu().numpy()
+# def get_forwards_sst(model, dataset, vocab):
+#     global extracted_forward_embs
+#     extracted_forward_embs = [] # clear existing stored grads
+#     outs = []
+#     iterator = BucketIterator(batch_size=1, sorting_keys=[("tokens", "num_tokens")])
+#     iterator.index_with(vocab)
+#     for batch in lazy_groups_of(iterator(dataset, num_epochs=1, shuffle=False), group_size=1):
+#         batch = move_to_device(batch[0], cuda_device=0)
+#         output_label =  model(batch['tokens'], None)
+#         output_dict = {}
+#         print_string = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['tokens']['tokens'][0].detach().cpu().numpy())])
+#         output_dict['text'] = print_string
+#         output_dict['embedding'] = extracted_forward_embs[-1]
+#         output_dict['label'] = batch['label'].detach().cpu().numpy()
         
-        outs.append(output_dict)
-    return outs
+#         outs.append(output_dict)
+#     return outs
 
 
-def get_forwards_snli(model, dataset, vocab):
-    global extracted_forward_embs
-    extracted_forward_embs = [] # clear existing stored grads
-    outs = []
-    iterator = BucketIterator(batch_size=1, sorting_keys=[("premise", "num_tokens")])
-    iterator.index_with(vocab)
-    for batch in lazy_groups_of(iterator(dataset, num_epochs=1, shuffle=False), group_size=1):
-        batch = move_to_device(batch[0], cuda_device=0)
-        output_label =  model(batch['premise'], batch['hypothesis'], None)
-        output_dict = {}
-        print_string_hypo = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['hypothesis']['tokens'][0].detach().cpu().numpy())])
-        print_string_premise = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['premise']['tokens'][0].detach().cpu().numpy())])
-#         output_dict['hypo'] = print_string_hypo
-#         output_dict['premise'] = print_string_premise
-        output_dict['embedding'] = extracted_forward_embs[-1]
-#         print(extracted_forward_embs[-1])
-#         output_dict['embedding_premise'] = extracted_forward_embs[-1][1]
-        output_dict['label'] = batch['label'].detach().cpu().numpy()
-        outs.append(output_dict)
-    return outs
+# def get_forwards_snli(model, dataset, vocab):
+#     global extracted_forward_embs
+#     extracted_forward_embs = [] # clear existing stored grads
+#     outs = []
+#     iterator = BucketIterator(batch_size=1, sorting_keys=[("premise", "num_tokens")])
+#     iterator.index_with(vocab)
+#     for batch in lazy_groups_of(iterator(dataset, num_epochs=1, shuffle=False), group_size=1):
+#         batch = move_to_device(batch[0], cuda_device=0)
+#         output_label =  model(batch['premise'], batch['hypothesis'], None)
+#         output_dict = {}
+#         print_string_hypo = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['hypothesis']['tokens'][0].detach().cpu().numpy())])
+#         print_string_premise = ' '.join([vocab.get_token_from_index(idx) for idx in list(batch['premise']['tokens'][0].detach().cpu().numpy())])
+# #         output_dict['hypo'] = print_string_hypo
+# #         output_dict['premise'] = print_string_premise
+#         output_dict['embedding'] = extracted_forward_embs[-1]
+# #         print(extracted_forward_embs[-1])
+# #         output_dict['embedding_premise'] = extracted_forward_embs[-1][1]
+#         output_dict['label'] = batch['label'].detach().cpu().numpy()
+#         outs.append(output_dict)
+#     return outs
 
 
-def get_accuracy_elmo(model, dev_dataset, vocab, trigger_token_ids=None, snli=False):
-    """
-    When trigger_token_ids is None, gets accuracy on the dev_dataset. Otherwise, gets accuracy with
-    triggers prepended for the whole dev_dataset.
-    """
-    model.get_metrics(reset=True)
-    model.eval() # model should be in eval() already, but just in case
-    if snli:
-        iterator = BucketIterator(batch_size=1, sorting_keys=[("premise", "num_tokens")])
-    else:
-        iterator = BucketIterator(batch_size=1, sorting_keys=[("tokens", "num_tokens")])
-    iterator.index_with(vocab)
-    if trigger_token_ids is None:
-        for batch in lazy_groups_of(iterator(dev_dataset, num_epochs=1, shuffle=False), group_size=1):
-            evaluate_batch(model, batch, trigger_token_ids, snli)
-        print("Without Triggers: " + str(model.get_metrics()['accuracy']))
-    else:
-#         print_string = ""
-#         for idx in trigger_token_ids:
-#             print_string = print_string + vocab.get_token_from_index(idx) + ', '
-        i=0
-        vocab = Vocabulary()
-        s_indexer = ELMoTokenCharactersIndexer()
-        for batch in lazy_groups_of(iterator(dev_dataset, num_epochs=1, shuffle=False), group_size=1):
-            l = dev_dataset[i]['tokens'].sequence_length()
-            text = ' '.join([dev_dataset[i]['tokens'][x].text for x in range(l)])
-            text = trigger_token_ids + " " + text
-            tokens = [Token(word) for word in text.split()]
-            indices = s_indexer.tokens_to_indices(tokens, vocab, 'tokens')
-            batch[0]['tokens']['tokens'] = torch.tensor([indices['tokens']]).cuda()
+# def get_accuracy_elmo(model, dev_dataset, vocab, trigger_token_ids=None, snli=False):
+#     """
+#     When trigger_token_ids is None, gets accuracy on the dev_dataset. Otherwise, gets accuracy with
+#     triggers prepended for the whole dev_dataset.
+#     """
+#     model.get_metrics(reset=True)
+#     model.eval() # model should be in eval() already, but just in case
+#     if snli:
+#         iterator = BucketIterator(batch_size=1, sorting_keys=[("premise", "num_tokens")])
+#     else:
+#         iterator = BucketIterator(batch_size=1, sorting_keys=[("tokens", "num_tokens")])
+#     iterator.index_with(vocab)
+#     if trigger_token_ids is None:
+#         for batch in lazy_groups_of(iterator(dev_dataset, num_epochs=1, shuffle=False), group_size=1):
+#             evaluate_batch(model, batch, trigger_token_ids, snli)
+#         print("Without Triggers: " + str(model.get_metrics()['accuracy']))
+#     else:
+# #         print_string = ""
+# #         for idx in trigger_token_ids:
+# #             print_string = print_string + vocab.get_token_from_index(idx) + ', '
+#         i=0
+#         vocab = Vocabulary()
+#         s_indexer = ELMoTokenCharactersIndexer()
+#         for batch in lazy_groups_of(iterator(dev_dataset, num_epochs=1, shuffle=False), group_size=1):
+#             l = dev_dataset[i]['tokens'].sequence_length()
+#             text = ' '.join([dev_dataset[i]['tokens'][x].text for x in range(l)])
+#             text = trigger_token_ids + " " + text
+#             tokens = [Token(word) for word in text.split()]
+#             indices = s_indexer.tokens_to_indices(tokens, vocab, 'tokens')
+#             batch[0]['tokens']['tokens'] = torch.tensor([indices['tokens']]).cuda()
             
-            evaluate_batch(model, batch, None, snli)
-            i+=1
-#         print("Current Triggers: " + print_string + " : " + str(model.get_metrics()['accuracy']))
-    return model.get_metrics()['accuracy']
+#             evaluate_batch(model, batch, None, snli)
+#             i+=1
+# #         print("Current Triggers: " + print_string + " : " + str(model.get_metrics()['accuracy']))
+#     return model.get_metrics()['accuracy']
 
 def get_best_candidates(model, batch, trigger_token_ids, cand_trigger_token_ids, \
                         snli=False, beam_size=1, increase_loss=False, is_df=False):
