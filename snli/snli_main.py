@@ -39,13 +39,13 @@ def main():
     vocab = model.vocab
 
     # add hooks for embeddings so we can compute gradients w.r.t. to the input tokens
-#     utils.add_hooks(model)
-#     embedding_weight = utils.get_embedding_weight(model) # save the word embedding matrix
+    utils.add_hooks(model)
+    embedding_weight = utils.get_embedding_weight(model) # save the word embedding matrix
 
     # Batches of examples to construct triggers
-#     universal_perturb_batch_size = 32
-#     iterator = BasicIterator(batch_size=universal_perturb_batch_size)
-#     iterator.index_with(vocab)
+    universal_perturb_batch_size = 32
+    iterator = BasicIterator(batch_size=universal_perturb_batch_size)
+    iterator.index_with(vocab)
 
     dataset_label_filter = args.Ground # only contradiction examples
     subset_dev_dataset = []
@@ -63,73 +63,72 @@ def main():
         imp_instance = (reader.text_to_instance(imp['premise'], imp['hypothesis'], dataset_label_filter))
         impressions_list.append(imp_instance)
     
-    # get accuracy before adding triggers
-    utils.add_forward_hooks_snli(model)
-    model.eval()
-    outputs = utils.get_forwards_snli(model, impressions_list, vocab)
-    import pickle
-    with open('snli_'+dataset_label_filter+'.pkl', 'wb') as f:
-        pickle.dump(outputs,f)
+#     # get accuracy before adding triggers
+#     utils.add_forward_hooks_snli(model)
+#     model.eval()
+#     outputs = utils.get_forwards_snli(model, impressions_list, vocab)
+#     import pickle
+#     with open('snli_'+dataset_label_filter+'.pkl', 'wb') as f:
+#         pickle.dump(outputs,f)
         
-#     for instance in dev_dataset:
-#         if instance['label'].label == dataset_label_filter:
-# #             l = instance['hypothesis'].sequence_length()
-# #             hypo = ' '.join([instance['hypothesis'][x].text for x in range(l-1)])
-# #             print(hypo)
-# #             imp_instance = (reader.text_to_instance('', hypo, dataset_label_filter))
-#             subset_dev_dataset.append(instance)
+    for instance in dev_dataset:
+        if instance['label'].label == dataset_label_filter:
+#             l = instance['hypothesis'].sequence_length()
+#             hypo = ' '.join([instance['hypothesis'][x].text for x in range(l-1)])
+#             print(hypo)
+#             imp_instance = (reader.text_to_instance('', hypo, dataset_label_filter))
+            subset_dev_dataset.append(instance)
     
-    
-#     target_label = args.Target
-#     run = args.Run
-#     isdf = args.IsDF
-#     # Get original accuracy before adding universal triggers
-#     utils.get_accuracy(model, subset_dev_dataset, vocab, trigger_token_ids=None, snli=True)
-#     utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids=None, snli=True)
+    target_label = args.Target
+    run = args.Run
+    isdf = args.IsDF
+    # Get original accuracy before adding universal triggers
+    utils.get_accuracy(model, subset_dev_dataset, vocab, trigger_token_ids=None, snli=True)
+    utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids=None, snli=True)
 
-#     # Initialize triggers
-#     num_trigger_tokens = 1 # one token prepended
-#     is_datafree = False
-# #     print(model, inspect.getfullargspec(model.forward))
-#     trigger_token_ids = [vocab.get_token_index("the")] * num_trigger_tokens
-# #     print(is_datafree, dataset_label_filter, target_label)
-    # sample batches, update the triggers, and repeat
+    # Initialize triggers
+    num_trigger_tokens = 1 # one token prepended
+    is_datafree = False
+#     print(model, inspect.getfullargspec(model.forward))
+    trigger_token_ids = [vocab.get_token_index("the")] * num_trigger_tokens
+#     print(is_datafree, dataset_label_filter, target_label)
+    sample batches, update the triggers, and repeat
     
-#     trig_store = []
-#     if isdf == '1':
-#         it = impressions_list
-#         nep = 10
-#     else:
-#         it = subset_dev_dataset
-#         nep = 5
-#     for batch in lazy_groups_of(iterator(it, num_epochs=nep, shuffle=True), group_size=1):
-# #     for batch in lazy_groups_of(iterator(subset_dev_dataset, num_epochs=1, shuffle=True), group_size=1):
-#         # get model accuracy with current triggers
-#         model.train() # rnn cannot do backwards in train mode
+    trig_store = []
+    if isdf == '1':
+        it = impressions_list
+        nep = 10
+    else:
+        it = subset_dev_dataset
+        nep = 5
+    for batch in lazy_groups_of(iterator(it, num_epochs=nep, shuffle=True), group_size=1):
+#     for batch in lazy_groups_of(iterator(subset_dev_dataset, num_epochs=1, shuffle=True), group_size=1):
+        # get model accuracy with current triggers
+        model.train() # rnn cannot do backwards in train mode
 
-#         # get grad of triggers
-#         averaged_grad = utils.get_average_grad(model, batch, trigger_token_ids, target_label, snli=True, is_df=is_datafree)
-# #         model.eval()
-#         # find attack candidates using an attack method
-#         cand_trigger_token_ids = attacks.hotflip_attack(averaged_grad,
-#                                                         embedding_weight,
-#                                                         num_candidates=40,increase_loss = True)
+        # get grad of triggers
+        averaged_grad = utils.get_average_grad(model, batch, trigger_token_ids, target_label, snli=True, is_df=is_datafree)
+        model.eval()
+        # find attack candidates using an attack method
+        cand_trigger_token_ids = attacks.hotflip_attack(averaged_grad,
+                                                        embedding_weight,
+                                                        num_candidates=40,increase_loss = True)
         
-#         trigger_token_ids = utils.get_best_candidates(model,
-#                                                       batch,
-#                                                       trigger_token_ids,
-#                                                       cand_trigger_token_ids,
-#                                                       snli=True,beam_size = 1,
-#                                                      increase_loss = True, is_df = is_datafree)
+        trigger_token_ids = utils.get_best_candidates(model,
+                                                      batch,
+                                                      trigger_token_ids,
+                                                      cand_trigger_token_ids,
+                                                      snli=True,beam_size = 1,
+                                                     increase_loss = True, is_df = is_datafree)
         
-#         print_string = ' '.join([vocab.get_token_from_index(idx) for idx in trigger_token_ids])
-#         acc_val = utils.get_accuracy(model, subset_dev_dataset, vocab, trigger_token_ids, snli=True)
-#         acc_ci = utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids, snli=True)
+        print_string = ' '.join([vocab.get_token_from_index(idx) for idx in trigger_token_ids])
+        acc_val = utils.get_accuracy(model, subset_dev_dataset, vocab, trigger_token_ids, snli=True)
+        acc_ci = utils.get_accuracy(model, impressions_list, vocab, trigger_token_ids, snli=True)
         
-#         trig_store.append({'trig':print_string, 'loss_val':acc_val, 'loss_ci':acc_ci})
+        trig_store.append({'trig':print_string, 'loss_val':acc_val, 'loss_ci':acc_ci})
     
-#     results = pd.DataFrame(trig_store)
-#     results.to_csv('triggers_'+oh+"_"+dataset_label_filter+'_'+target_label+'_'+run+'_'+isdf+'.csv', index = False)
+    results = pd.DataFrame(trig_store)
+    results.to_csv('triggers_'+oh+"_"+dataset_label_filter+'_'+target_label+'_'+run+'_'+isdf+'.csv', index = False)
 # -
 
 if __name__ == '__main__':
