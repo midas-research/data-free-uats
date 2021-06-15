@@ -105,8 +105,8 @@ def main():
     model.cuda()
 
     # where to save the model
-    model_path = "/tmp/" + EMBEDDING_TYPE + "_" + "model.th"
-    vocab_path = "/tmp/" + EMBEDDING_TYPE + "_" + "vocab"
+    model_path = "../data/" + EMBEDDING_TYPE + "_" + "model.th"
+    vocab_path = "../data/" + EMBEDDING_TYPE + "_" + "vocab"
     # if the model already exists (its been trained), load the pre-trained weights and vocabulary
     if os.path.isfile(model_path):
         vocab = Vocabulary.from_files(vocab_path)
@@ -166,7 +166,7 @@ def main():
 #     import pickle
 #     with open('sst_'+dataset_label_filter+'.pkl', 'wb') as f:
 #         pickle.dump(outputs,f)
-#     model.train() # rnn cannot do backwards in train mode
+    model.train() # rnn cannot do backwards in train mode
     
     # initialize triggers which are concatenated to the input
     num_trigger_tokens = 3
