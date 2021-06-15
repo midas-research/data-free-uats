@@ -27,6 +27,19 @@ The repository is broken down by task:
 
 ! wget https://s3-us-west-2.amazonaws.com/allennlp/models/decomposable-attention-2017.09.04.tar.gz
 
+! wget https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x1024_128_2048cnn_1xhighway/elmo_2x1024_128_2048cnn_1xhighway_options.json
+
+! wget https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x1024_128_2048cnn_1xhighway/elmo_2x1024_128_2048cnn_1xhighway_weights.hdf5
+
+SST MODELS:
+
+1)  LSTM - GLOVE
+2)  LSTM - ELMO
+
+Pl download the models from here: https://drive.google.com/drive/folders/1lj_6Tq5FL79cnhJzzn9jjg-rPgln0cZx?usp=sharing and add them to the data folder
+
+RUNNING EXPERIMENTS:
+Pl check individual folders for instructions
 
 References:
 Highly inspried by the work by Eric Wallace: https://github.com/Eric-Wallace/universal-triggers
