@@ -27,3 +27,6 @@ The repository is broken down by task:
 
 ! wget https://s3-us-west-2.amazonaws.com/allennlp/models/decomposable-attention-2017.09.04.tar.gz
 
+
+References:
+Highly inspried by the work by Eric Wallace: https://github.com/Eric-Wallace/universal-triggers
