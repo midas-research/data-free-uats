@@ -1,6 +1,6 @@
-# Data Free Universal Adversarial Triggers
+# MINIMAL: Mining Models for Data Free Universal Adversarial Triggers
 
-This is the official code for the ICDM submission paper, Data Free Universal Adversarial Triggers.
+This is the official code for the AAAI-2022 paper, MINIMAL: Mining Models for Data Free Universal Adversarial Triggers (https://arxiv.org/abs/2109.12406)
 
 The repository is broken down by task: 
 + `sst` attacks sentiment analysis using the SST dataset (AllenNLP-based).
@@ -40,6 +40,17 @@ Pl download the models from here: https://drive.google.com/drive/folders/1lj_6Tq
 
 RUNNING EXPERIMENTS:
 Pl check individual folders for instructions
+
+# Citation:
+If you use the code, please cite the paper as:
+```
+@article{singla2021minimal,
+  title={MINIMAL: Mining Models for Data Free Universal Adversarial Triggers},
+  author={Singla, Yaman Kumar and Parekh, Swapnil and Singh, Somesh and Chen, Changyou and Krishnamurthy, Balaji and Shah, Rajiv Ratn},
+  journal={arXiv preprint arXiv:2109.12406},
+  year={2021}
+}
+```
 
 References:
 Highly inspried by the work by Eric Wallace: https://github.com/Eric-Wallace/universal-triggers
