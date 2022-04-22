@@ -53,4 +53,4 @@ If you use the code, please cite the paper as:
 ```
 
 References:
-Highly inspried by the work by Eric Wallace: https://github.com/Eric-Wallace/universal-triggers
+Highly inspired by the work by Eric Wallace: https://github.com/Eric-Wallace/universal-triggers
